@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SPACE RAIDERS — 复古太空弹幕射击</title>
+  <meta name="description" content="复古太空弹幕射击网页游戏，驾驶飞船抵御敌机，刷新全球排行榜。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <main class="stage">
+    <div class="cabinet">
+      <div class="cabinet-top">
+        <span class="brand-dot"></span>
+        <span class="brand-text">SPACE RAIDERS</span>
+        <span class="brand-dot magenta"></span>
+      </div>
+
+      <div class="screen" id="screen">
+        <canvas id="game" width="480" height="720" aria-label="游戏画布"></canvas>
+
+        <!-- HUD -->
+        <div class="hud" id="hud" hidden>
+          <div class="hud-cell">
+            <span class="hud-label">SCORE</span>
+            <span class="hud-value" id="hudScore">0</span>
+          </div>
+          <div class="hud-cell center">
+            <span class="hud-label">WAVE</span>
+            <span class="hud-value" id="hudWave">1</span>
+          </div>
+          <div class="hud-cell right">
+            <span class="hud-label">LIVES</span>
+            <span class="hud-value" id="hudLives"></span>
+          </div>
+        </div>
+
+        <!-- 开始遮罩 -->
+        <div class="overlay" id="menuOverlay">
+          <h1 class="title">SPACE<br />RAIDERS</h1>
+          <p class="subtitle">复古 · 太空 · 弹幕射击</p>
+          <button class="arcade-btn primary" id="startBtn" type="button">INSERT COIN</button>
+          <div class="controls-card">
+            <div class="control-row"><kbd>← → ↑ ↓</kbd><span>移动飞船</span></div>
+            <div class="control-row"><kbd>SPACE</kbd><span>发射子弹</span></div>
+            <div class="control-row"><kbd>P</kbd><span>暂停 / 继续</span></div>
+          </div>
+          <button class="arcade-btn ghost" id="menuBoardBtn" type="button">排行榜</button>
+        </div>
+
+        <!-- 暂停遮罩 -->
+        <div class="overlay small" id="pauseOverlay" hidden>
+          <h2 class="title sm">PAUSED</h2>
+          <p class="subtitle">按 <kbd>P</kbd> 继续</p>
+          <button class="arcade-btn primary" id="resumeBtn" type="button">继续</button>
+        </div>
+
+        <!-- 游戏结束遮罩 -->
+        <div class="overlay" id="gameoverOverlay" hidden>
+          <h2 class="title sm danger">GAME OVER</h2>
+          <div class="final-score">
+            <span class="hud-label">FINAL SCORE</span>
+            <span class="final-num" id="finalScore">0</span>
+          </div>
+          <form id="scoreForm" class="score-form" autocomplete="off">
+            <label class="hud-label" for="nameInput">输入你的名字</label>
+            <input
+              id="nameInput"
+              type="text"
+              maxlength="12"
+              placeholder="PILOT_01"
+              aria-label="玩家名字"
+              autocomplete="off"
+            />
+            <p class="form-hint" id="formHint" role="status"></p>
+            <div class="form-actions">
+              <button class="arcade-btn primary" id="submitBtn" type="submit">提交分数</button>
+              <button class="arcade-btn ghost" id="replayBtn" type="button">再玩一次</button>
+            </div>
+          </form>
+          <button class="arcade-btn ghost small" id="overBoardBtn" type="button">查看排行榜</button>
+        </div>
+
+        <!-- 排行榜面板 -->
+        <div class="overlay" id="boardOverlay" hidden>
+          <h2 class="title sm">LEADERBOARD</h2>
+          <div class="board-list" id="boardList">
+            <p class="subtitle">载入中…</p>
+          </div>
+          <div class="form-actions">
+            <button class="arcade-btn primary" id="refreshBtn" type="button">刷新</button>
+            <button class="arcade-btn ghost" id="closeBoardBtn" type="button">返回</button>
+          </div>
+        </div>
+
+        <!-- CRT 扫描线滤镜 -->
+        <div class="crt" aria-hidden="true"></div>
+        <div class="vignette" aria-hidden="true"></div>
+      </div>
+
+      <!-- 移动端虚拟手柄 -->
+      <div class="touch-pad" id="touchPad" hidden>
+        <div class="dpad">
+          <button class="tbtn up" data-key="ArrowUp" aria-label="上">▲</button>
+          <button class="tbtn left" data-key="ArrowLeft" aria-label="左">◀</button>
+          <button class="tbtn right" data-key="ArrowRight" aria-label="右">▶</button>
+          <button class="tbtn down" data-key="ArrowDown" aria-label="下">▼</button>
+        </div>
+        <button class="tbtn fire" data-key="Space" aria-label="射击">FIRE</button>
+      </div>
+
+      <div class="cabinet-bottom">
+        <span class="hint-text">© SPACE RAIDERS · CANVAS + EXPRESS + MONGODB</span>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

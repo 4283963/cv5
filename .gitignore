@@ -33,3 +33,6 @@ bin/
 obj/
 __pycache__/
 *.pyc
+
+# 环境变量
+.env
