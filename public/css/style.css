@@ -155,6 +155,44 @@ canvas#game {
 }
 .heart.lost { opacity: 0.15; filter: grayscale(1); transform: scale(0.8); }
 
+/* Power-up 进度条 */
+.powerup-bar {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 18px;
+  border: 2px solid var(--yellow);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  box-shadow: 0 0 12px rgba(255, 230, 0, 0.6);
+  z-index: 5;
+  pointer-events: none;
+}
+.powerup-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--yellow), var(--magenta));
+  box-shadow: 0 0 8px rgba(255, 230, 0, 0.8);
+  transition: width 0.1s linear;
+}
+.powerup-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: 7px;
+  color: #05010d;
+  letter-spacing: 1px;
+  text-shadow: 0 0 4px rgba(255, 230, 0, 0.6);
+  z-index: 1;
+}
+
 /* 遮罩层 */
 .overlay {
   position: absolute;

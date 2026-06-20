@@ -1,9 +1,10 @@
 // 游戏引擎：渲染循环、实体管理、敌机生成、碰撞检测、关卡难度
-import { Player, Enemy, Bullet, Particle, FloatingText, Star, explode, aabb, ENEMY_CONFIG } from './entities.js';
+import { Player, Enemy, Bullet, Particle, FloatingText, Star, StarPowerUp, explode, aabb, ENEMY_CONFIG } from './entities.js';
 
 const W = 480;
 const H = 720;
 const STAR_COUNT = 90;
+const POWERUP_DROP_CHANCE = 0.2; // 20% 概率掉落星星
 
 export class Game {
   constructor(canvas, input, callbacks = {}) {
@@ -31,6 +32,7 @@ export class Game {
     this.bullets = [];
     this.enemyBullets = [];
     this.enemies = [];
+    this.powerups = [];
     this.particles = [];
     this.texts = [];
     this.score = 0;
@@ -116,6 +118,9 @@ export class Game {
           if (e.dead) {
             this.score += e.points;
             this.killsThisWave++;
+            if (Math.random() < POWERUP_DROP_CHANCE) {
+              this.powerups.push(new StarPowerUp(e.centerX(), e.centerY()));
+            }
             explode(this.particles, e.centerX(), e.centerY(), '#ff8c2a', 16);
             this.texts.push(new FloatingText(e.centerX(), e.centerY(), `+${e.points}`, '#ffe600'));
             this._addShake(0.12, 3);
@@ -151,6 +156,9 @@ export class Game {
           e.dead = true;
           this.score += e.points;
           this.killsThisWave++;
+          if (Math.random() < POWERUP_DROP_CHANCE) {
+            this.powerups.push(new StarPowerUp(e.centerX(), e.centerY()));
+          }
           explode(this.particles, e.centerX(), e.centerY(), '#ff2d95', 18);
           this._emitHud();
           this._checkWave();
@@ -160,10 +168,28 @@ export class Game {
       }
     }
 
+    // 星星道具
+    for (const p of this.powerups) p.update(dt, this.bounds);
+    if (!this.player.dead) {
+      const pb = this.player.hitbox();
+      for (const p of this.powerups) {
+        if (p.dead || p.collected) continue;
+        if (aabb(p.hitbox(), pb)) {
+          p.collected = true;
+          p.dead = true;
+          this.player.activatePowerup(5);
+          this.texts.push(new FloatingText(p.x + p.w / 2, p.y, 'POWER UP!', '#ffe600'));
+          explode(this.particles, p.x + p.w / 2, p.y + p.h / 2, '#ffe600', 12);
+          break;
+        }
+      }
+    }
+
     // 清理
     this.bullets = this.bullets.filter((b) => !b.dead);
     this.enemyBullets = this.enemyBullets.filter((b) => !b.dead);
     this.enemies = this.enemies.filter((e) => !e.dead);
+    this.powerups = this.powerups.filter((p) => !p.dead);
 
     // 粒子与文字
     for (const p of this.particles) p.update(dt);
@@ -172,6 +198,10 @@ export class Game {
     this.texts = this.texts.filter((t) => !t.dead);
 
     if (this.shake > 0) this.shake -= dt;
+
+    if (this.player && this.player.isPoweredUp()) {
+      this._emitHud();
+    }
   }
 
   _spawnWave() {
@@ -234,7 +264,9 @@ export class Game {
   }
 
   _emitHud() {
-    if (this.callbacks.onHud) this.callbacks.onHud(this.score, this.wave, this.lives);
+    if (this.callbacks.onHud) {
+      this.callbacks.onHud(this.score, this.wave, this.lives, this.player ? this.player.powerup : 0);
+    }
   }
 
   _render() {
@@ -252,6 +284,7 @@ export class Game {
     for (const s of this.stars) s.draw(ctx);
     // 实体
     for (const e of this.enemies) e.draw(ctx);
+    for (const p of this.powerups) p.draw(ctx);
     for (const b of this.bullets) b.draw(ctx);
     for (const b of this.enemyBullets) b.draw(ctx);
     if (this.player && !this.player.dead) this.player.draw(ctx);

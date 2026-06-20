@@ -10,12 +10,12 @@ const input = new Input();
 input.attach();
 
 const game = new Game(canvas, input, {
-  onHud: (score, wave, lives) => updateHud(score, wave, lives),
+  onHud: (score, wave, lives, powerup) => updateHud(score, wave, lives, powerup),
   onGameOver: (score) => showGameOver(score),
 });
 
 // ---- HUD ----
-function updateHud(score, wave, lives) {
+function updateHud(score, wave, lives, powerup = 0) {
   $('hudScore').textContent = score.toLocaleString();
   $('hudWave').textContent = wave;
   const livesEl = $('hudLives');
@@ -25,6 +25,14 @@ function updateHud(score, wave, lives) {
     const h = document.createElement('span');
     h.className = 'heart' + (i >= lives ? ' lost' : '');
     livesEl.appendChild(h);
+  }
+  const bar = $('powerupBar');
+  const fill = $('powerupBarFill');
+  if (powerup > 0) {
+    bar.hidden = false;
+    fill.style.width = Math.max(0, Math.min(100, (powerup / 5) * 100)) + '%';
+  } else {
+    bar.hidden = true;
   }
 }
 
@@ -48,6 +56,7 @@ function showOverlay(name) {
 function startGame() {
   hideAllOverlays();
   $('hud').hidden = false;
+  $('powerupBar').hidden = true;
   $('touchPad').hidden = false;
   game.start();
 }

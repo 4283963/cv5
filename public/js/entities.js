@@ -132,12 +132,19 @@ export class Player {
     this.invincible = 1.2;
     this.dead = false;
     this.engineFlick = 0;
+    this.powerup = 0;
   }
   centerX() { return this.x + this.w / 2; }
   centerY() { return this.y + this.h / 2; }
   hitbox() {
     const pad = 4;
     return { x: this.x + pad, y: this.y + pad, w: this.w - pad * 2, h: this.h - pad * 2 };
+  }
+  isPoweredUp() {
+    return this.powerup > 0;
+  }
+  activatePowerup(duration = 5) {
+    this.powerup = Math.max(this.powerup, duration);
   }
   update(dt, input, bounds, bullets) {
     const m = input.move();
@@ -154,15 +161,47 @@ export class Player {
 
     this.cooldown -= dt;
     if (input.fire() && this.cooldown <= 0) {
-      bullets.push(new Bullet(this.centerX() - 7, this.y, 0, -560, 'player'));
-      bullets.push(new Bullet(this.centerX() + 2, this.y, 0, -560, 'player'));
+      if (this.powerup > 0) {
+        this._fireSpread(bullets);
+      } else {
+        this._fireNormal(bullets);
+      }
       this.cooldown = this.fireRate;
     }
     if (this.invincible > 0) this.invincible -= dt;
+    if (this.powerup > 0) this.powerup -= dt;
     this.engineFlick = (this.engineFlick + dt * 20) % (Math.PI * 2);
+  }
+  _fireNormal(bullets) {
+    bullets.push(new Bullet(this.centerX() - 7, this.y, 0, -560, 'player'));
+    bullets.push(new Bullet(this.centerX() + 2, this.y, 0, -560, 'player'));
+  }
+  _fireSpread(bullets) {
+    const speed = 560;
+    const angles = [-0.3, 0, 0.3];
+    for (const a of angles) {
+      const vx = Math.sin(a) * speed;
+      const vy = -Math.cos(a) * speed;
+      bullets.push(new Bullet(this.centerX() - 2, this.y, vx, vy, 'player'));
+    }
   }
   draw(ctx) {
     if (this.invincible > 0 && Math.floor(this.invincible * 12) % 2 === 0) return;
+
+    if (this.powerup > 0) {
+      const pulse = 0.6 + Math.sin(this.powerup * 12) * 0.4;
+      ctx.save();
+      ctx.globalAlpha = 0.5 * pulse;
+      ctx.shadowColor = '#ffe600';
+      ctx.shadowBlur = 20;
+      ctx.strokeStyle = '#ffe600';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(this.centerX(), this.centerY(), this.w * 0.9, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // 引擎尾焰
     const flame = 4 + Math.sin(this.engineFlick) * 3;
     ctx.fillStyle = '#ff8c2a';
@@ -171,7 +210,8 @@ export class Player {
     ctx.fillStyle = '#ffe600';
     ctx.fillRect(this.x + this.w / 2 - 1, this.y + this.h - 2, 2, flame * 0.6);
     ctx.globalAlpha = 1;
-    drawPixels(ctx, PLAYER_MAP, PALETTES.player, this.cell, this.x, this.y, '#00f0ff');
+    const shipGlow = this.powerup > 0 ? '#ffe600' : '#00f0ff';
+    drawPixels(ctx, PLAYER_MAP, PALETTES.player, this.cell, this.x, this.y, shipGlow);
   }
 }
 
@@ -288,6 +328,54 @@ export class Bullet {
     if (this.owner === 'player') ctx.fillRect(this.x, this.y, this.w, this.h);
     else { ctx.beginPath(); ctx.arc(this.x + this.w / 2, this.y + this.h / 2, this.w / 2 - 1, 0, Math.PI * 2); ctx.fill(); }
     ctx.shadowBlur = 0;
+  }
+}
+
+export class StarPowerUp {
+  constructor(x, y) {
+    this.x = x - 10;
+    this.y = y - 10;
+    this.w = 20;
+    this.h = 20;
+    this.vy = 80;
+    this.t = 0;
+    this.dead = false;
+    this.collected = false;
+  }
+  hitbox() {
+    return { x: this.x + 3, y: this.y + 3, w: this.w - 6, h: this.h - 6 };
+  }
+  update(dt, bounds) {
+    this.t += dt;
+    this.y += this.vy * dt;
+    if (this.y > bounds.h + 30) this.dead = true;
+  }
+  draw(ctx) {
+    const flash = Math.sin(this.t * 10) * 0.4 + 0.6;
+    ctx.save();
+    ctx.globalAlpha = flash;
+    ctx.shadowColor = '#ffe600';
+    ctx.shadowBlur = 16;
+    ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
+    ctx.rotate(this.t * 2);
+    const s = this.w / 2;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 === 0 ? s : s * 0.45;
+      const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+      const px = Math.cos(a) * r;
+      const py = Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#ffe600';
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, 0, s * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
 }
 
