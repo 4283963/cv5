@@ -154,7 +154,7 @@ export class Player {
 
     this.cooldown -= dt;
     if (input.fire() && this.cooldown <= 0) {
-      bullets.push(new Bullet(this.centerX() - 2, this.y, 0, -560, 'player'));
+      bullets.push(new Bullet(this.centerX() - 7, this.y, 0, -560, 'player'));
       bullets.push(new Bullet(this.centerX() + 2, this.y, 0, -560, 'player'));
       this.cooldown = this.fireRate;
     }
@@ -247,12 +247,17 @@ export class Bullet {
     this.vx = vx;
     this.vy = vy;
     this.owner = owner;
-    this.w = owner === 'player' ? 3 : 5;
-    this.h = owner === 'player' ? 12 : 5;
+    this.w = owner === 'player' ? 5 : 5;
+    this.h = owner === 'player' ? 14 : 5;
     this.dead = false;
     this.trail = [];
   }
-  hitbox() { return { x: this.x, y: this.y, w: this.w, h: this.h }; }
+  hitbox() {
+    if (this.owner === 'player') {
+      return { x: this.x - 1, y: this.y, w: this.w + 2, h: this.h };
+    }
+    return { x: this.x, y: this.y, w: this.w, h: this.h };
+  }
   update(dt, bounds) {
     this.trail.push({ x: this.x, y: this.y });
     if (this.trail.length > 5) this.trail.shift();

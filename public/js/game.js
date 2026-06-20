@@ -149,7 +149,11 @@ export class Game {
         if (e.dead) continue;
         if (aabb(e.hitbox(), pb)) {
           e.dead = true;
+          this.score += e.points;
+          this.killsThisWave++;
           explode(this.particles, e.centerX(), e.centerY(), '#ff2d95', 18);
+          this._emitHud();
+          this._checkWave();
           this._hitPlayer();
           break;
         }
